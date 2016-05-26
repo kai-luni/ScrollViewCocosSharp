@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+using Xamarin.Forms;
+using CocosSharp;
+using ScrollViewCocosSharp.ScrollView;
+
+
+namespace ScrollViewCocosSharp
+{
+    public class GamePage : ContentPage
+    {
+        CocosSharpView _gameView;
+
+        private double width = 0;
+        private double height = 0;
+
+        public GamePage()
+        {
+            //_gameView = new CocosSharpView()
+            //{
+            //    HorizontalOptions = LayoutOptions.FillAndExpand,
+            //    VerticalOptions = LayoutOptions.FillAndExpand,
+            //    // Set the game world dimensions
+            //    //DesignResolution = new Size(1024, 768),
+            //    // Set the method to call once the view has been initialised
+            //    ViewCreated = LoadGame
+            //};
+
+            //Content = _gameView;
+        }
+
+        protected override void OnDisappearing()
+        {
+            if (_gameView != null)
+            {
+                _gameView.Paused = true;
+            }
+
+            base.OnDisappearing();
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
+            if (_gameView != null)
+                _gameView.Paused = false;
+        }
+
+        protected override void OnSizeAllocated(double width, double height)
+        {
+            base.OnSizeAllocated(width, height); //must be called
+            if (this.width != width || this.height != height)
+            {
+                this.width = width;
+                this.height = height;
+                CreateNewGameView();
+            }
+            
+        }
+
+        void CreateNewGameView()
+        {
+            _gameView = new CocosSharpView()
+            {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                // Set the game world dimensions
+                //DesignResolution = new Size(1024, 768),
+                // Set the method to call once the view has been initialised
+                ViewCreated = LoadGame
+            };
+
+            Content = _gameView;
+        }
+
+        void LoadGame(object sender, EventArgs e)
+        {
+            var nativeGameView = sender as CCGameView;
+
+            if (nativeGameView != null)
+            {
+                var contentSearchPaths = new List<string>() { "Fonts", "Sounds" };
+                CCSizeI viewSize = nativeGameView.ViewSize;
+                CCSizeI designResolution = nativeGameView.DesignResolution;
+
+                _gameView.DesignResolution = new Size(viewSize.Width, viewSize.Height);
+
+                // Determine whether to use the high or low def versions of our images
+                // Make sure the default texel to content size ratio is set correctly
+                // Of course you're free to have a finer set of image resolutions e.g (ld, hd, super-hd)
+                if (designResolution.Width < viewSize.Width)
+                {
+                    contentSearchPaths.Add("Images/Hd");
+                    CCSprite.DefaultTexelToContentSizeRatio = 2.0f;
+                }
+                else
+                {
+                    contentSearchPaths.Add("Images/Ld");
+                    CCSprite.DefaultTexelToContentSizeRatio = 1.0f;
+                }
+
+                nativeGameView.ContentManager.SearchPaths = contentSearchPaths;
+
+                var scrollView = new ScrollViewImplementation(nativeGameView.ViewSize);
+
+                var scrollLayer = new CCLayerColor(CCColor4B.White);
+                scrollLayer.AddChild(scrollView);
+
+                CCScene gameScene = new CCScene(nativeGameView);
+                gameScene.AddLayer(scrollLayer);
+                nativeGameView.RunWithScene(gameScene);
+            }
+        }
+    }
+}

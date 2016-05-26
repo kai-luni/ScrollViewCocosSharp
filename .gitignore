@@ -1,0 +1,10 @@
+packages/
+ScrollViewCocosSharp/ScrollViewCocosSharp/bin/
+ScrollViewCocosSharp/ScrollViewCocosSharp/obj/
+ScrollViewCocosSharp/ScrollViewCocosSharp.Droid/bin/
+ScrollViewCocosSharp/ScrollViewCocosSharp.Droid/obj/
+ScrollViewCocosSharp/ScrollViewCocosSharp.iOS/bin/
+ScrollViewCocosSharp/ScrollViewCocosSharp.iOS/obj/
+ScrollViewCocosSharp/ScrollViewCocosSharp.WP81/bin/
+ScrollViewCocosSharp/ScrollViewCocosSharp.WP81/obj/
+
