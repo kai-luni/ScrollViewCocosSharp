@@ -172,18 +172,33 @@ namespace ScrollViewCocosSharp.ScrollView
             }
         }
 
+        private CCSize _bouncingRectSize = new CCSize();
+        public CCSize BouncingRectSize
+        {
+            get { return _bouncingRectSize; }
+            set
+            {
+                _bouncingRectSize = value;
+                if (BouncingRectSize != new CCSize())
+                {
+                    Bounceable = true;
+                }
+            }
+        }
+
         public CCPoint ContentOffset
         {
             get { return _container.Position; }
             set { SetContentOffset(value); }
         }
 
+
+
         public CCPoint MinContainerOffset
         {
             get
             {
-                return new CCPoint(_viewSize.Width - _container.ContentSize.Width * _container.ScaleX,
-                    _viewSize.Height - _container.ContentSize.Height * _container.ScaleY);
+                return new CCPoint(_viewSize.Width - BouncingRectSize.Width * _container.ScaleX, _viewSize.Height - BouncingRectSize.Height * _container.ScaleY);
             }
         }
 
@@ -284,7 +299,7 @@ namespace ScrollViewCocosSharp.ScrollView
             ViewSize = size;
             TouchEnabled = true;
             Delegate = null;
-            Bounceable = true;
+            Bounceable = false;
             ClippingToBounds = true;
             Direction = CcScrollViewDirection.Both;
             MinScale = MaxScale = 1.0f;
@@ -292,7 +307,6 @@ namespace ScrollViewCocosSharp.ScrollView
             _touchLength = 0.0f;
             _minScale = 0.5f;
             _maxScale = 6.5f;
-
 
             AddChild(container);
         }
@@ -345,7 +359,7 @@ namespace ScrollViewCocosSharp.ScrollView
             else
             {
                 //set the _container position directly
-                if (!Bounceable)
+                if (Bounceable)
                 {
                     CCPoint minOffset = MinContainerOffset;
                     CCPoint maxOffset = MaxContainerOffset;
@@ -517,6 +531,7 @@ namespace ScrollViewCocosSharp.ScrollView
 
                     newPoint = Layer.ScreenToWorldspace(_touches[0].LocationOnScreen);
                     moveDistance = newPoint - _touchPoint;
+                    Debug.WriteLine("move distance: " + moveDistance);
 
                     float dis;
                     if (Direction == CcScrollViewDirection.Vertical)
@@ -561,8 +576,9 @@ namespace ScrollViewCocosSharp.ScrollView
                         float newX = _container.Position.X + moveDistance.X;
                         float newY = _container.Position.Y + moveDistance.Y;
 
-                        Debug.WriteLine("Scroll Distance: " + _scrollDistance);
+                        //Debug.WriteLine("Scroll Distance: " + _scrollDistance);
                         _scrollDistance = moveDistance;
+                        Debug.WriteLine("new offset " + new CCPoint(newX, newY));
                         SetContentOffset(new CCPoint(newX, newY));
                     }
                 }
@@ -658,7 +674,6 @@ namespace ScrollViewCocosSharp.ScrollView
         *
         * @param animated If YES, relocation is animated
         */
-
         void RelocateContainer(bool animated)
         {
             CCPoint min = MinContainerOffset;
@@ -731,7 +746,7 @@ namespace ScrollViewCocosSharp.ScrollView
             _scrollDistance = _scrollDistance * ScrollDeaccelRate;
             SetContentOffset(new CCPoint(newX, newY));
 
-            Debug.WriteLine("ScrollDistance: " + _scrollDistance);
+            //Debug.WriteLine("ScrollDistance: " + _scrollDistance);
 
             //if ((Math.Abs(_scrollDistance.X) <= ScrollDeaccelDist &&
             //     Math.Abs(_scrollDistance.Y) <= ScrollDeaccelDist) ||
@@ -748,6 +763,8 @@ namespace ScrollViewCocosSharp.ScrollView
                  Math.Abs(_scrollDistance.Y) <= ScrollDeaccelDist))
             {
                 Unschedule(DeaccelerateScrolling);
+                if(Bounceable)
+                    RelocateContainer(true);
             }
         }
 

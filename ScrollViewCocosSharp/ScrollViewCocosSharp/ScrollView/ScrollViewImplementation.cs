@@ -14,6 +14,9 @@ namespace ScrollViewCocosSharp.ScrollView
             CCDrawNode drawNode = new CCDrawNode();
 
             drawNode.DrawRect(new CCRect(0,0,200,200), CCColor4B.Blue, 2, CCColor4B.Red);
+            drawNode.DrawRect(new CCRect(1800, 1800, 200, 200), CCColor4B.Green, 2, CCColor4B.Red);
+            drawNode.DrawRect(new CCRect(1800, 0, 200, 200), CCColor4B.Yellow, 2, CCColor4B.Red);
+            drawNode.DrawRect(new CCRect(0, 1800, 200, 200), CCColor4B.Red, 2, CCColor4B.Blue);
 
             Container.AddChild(drawNode);
         }

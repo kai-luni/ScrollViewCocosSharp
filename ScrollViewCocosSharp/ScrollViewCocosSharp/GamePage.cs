@@ -105,6 +105,7 @@ namespace ScrollViewCocosSharp
                 nativeGameView.ContentManager.SearchPaths = contentSearchPaths;
 
                 var scrollView = new ScrollViewImplementation(nativeGameView.ViewSize);
+                scrollView.BouncingRectSize = new CCSize(2000, 2000);
 
                 var scrollLayer = new CCLayerColor(CCColor4B.White);
                 scrollLayer.AddChild(scrollView);
