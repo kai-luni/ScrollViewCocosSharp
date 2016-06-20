@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using CocosSharp;
 
 namespace ScrollViewCocosSharp.ScrollView
@@ -58,6 +59,8 @@ namespace ScrollViewCocosSharp.ScrollView
 
         public bool Bounceable { get; set; }
         public bool Dragging { get; private set; }
+        //dragging gets sometimes activated too easy, with the starttime some delay cen be implemented
+        private DateTime _dragginStartTime = DateTime.Now;  
         public bool IsTouchMoved { get; private set; }
         public CcScrollViewDirection Direction { get; set; }
         public ICcScrollViewDelegate Delegate { get; set; }
@@ -326,11 +329,9 @@ namespace ScrollViewCocosSharp.ScrollView
             if (Container != null)
             {
                 _maxInset = MaxContainerOffset;
-                _maxInset = new CCPoint(_maxInset.X + _viewSize.Width * InsetRatio,
-                    _maxInset.Y + _viewSize.Height * InsetRatio);
+                _maxInset = new CCPoint(_maxInset.X + _viewSize.Width * InsetRatio, _maxInset.Y + _viewSize.Height * InsetRatio);
                 _minInset = MinContainerOffset;
-                _minInset = new CCPoint(_minInset.X - _viewSize.Width * InsetRatio,
-                    _minInset.Y - _viewSize.Height * InsetRatio);
+                _minInset = new CCPoint(_minInset.X - _viewSize.Width * InsetRatio, _minInset.Y - _viewSize.Height * InsetRatio);
             }
         }
 
@@ -477,6 +478,7 @@ namespace ScrollViewCocosSharp.ScrollView
                 _touchPoint = Layer.ScreenToWorldspace(pTouch.LocationOnScreen);
                 IsTouchMoved = false;
                 Dragging = true; //Dragging started
+                _dragginStartTime = DateTime.Now;
                 _scrollDistance = CCPoint.Zero;
                 _touchLength = 0.0f;
             }
@@ -559,6 +561,7 @@ namespace ScrollViewCocosSharp.ScrollView
                         float newX = _container.Position.X + moveDistance.X;
                         float newY = _container.Position.Y + moveDistance.Y;
 
+                        Debug.WriteLine("Scroll Distance: " + _scrollDistance);
                         _scrollDistance = moveDistance;
                         SetContentOffset(new CCPoint(newX, newY));
                     }
@@ -596,7 +599,7 @@ namespace ScrollViewCocosSharp.ScrollView
             {
                 if (_touches.Count == 1 && IsTouchMoved)
                 {
-                    //Schedule(DeaccelerateScrolling);
+                    Schedule(DeaccelerateScrolling);
                 }
                 _touches.Remove(touch);
 
@@ -693,26 +696,27 @@ namespace ScrollViewCocosSharp.ScrollView
         /// <param name="dt">delta</param>
         void DeaccelerateScrolling(float dt)
         {
-            if (Dragging)
+            //make the cancellation less sensitive
+            if (Dragging && (_dragginStartTime-DateTime.Now).TotalMilliseconds < 50)
             {
                 Unschedule(DeaccelerateScrolling);
                 return;
             }
 
-            //CCPoint maxInset, minInset;
+            CCPoint maxInset, minInset;
 
             _container.Position = _container.Position + _scrollDistance;
 
-            //if (Bounceable)
-            //{
-            //    maxInset = _maxInset;
-            //    minInset = _minInset;
-            //}
-            //else
-            //{
-            //    maxInset = MaxContainerOffset;
-            //    minInset = MinContainerOffset;
-            //}
+            if (Bounceable)
+            {
+                maxInset = _maxInset;
+                minInset = _minInset;
+            }
+            else
+            {
+                maxInset = MaxContainerOffset;
+                minInset = MinContainerOffset;
+            }
 
             //check to see if offset lies within the inset bounds
             //float newX = Math.Min(_container.Position.X, maxInset.X);
@@ -723,9 +727,11 @@ namespace ScrollViewCocosSharp.ScrollView
             float newX = _container.Position.X;
             float newY = _container.Position.Y;
 
-            _scrollDistance = _scrollDistance - new CCPoint(newX - _container.Position.X, newY - _container.Position.Y);
+            //_scrollDistance = _scrollDistance - new CCPoint(newX - _container.Position.X, newY - _container.Position.Y);
             _scrollDistance = _scrollDistance * ScrollDeaccelRate;
             SetContentOffset(new CCPoint(newX, newY));
+
+            Debug.WriteLine("ScrollDistance: " + _scrollDistance);
 
             //if ((Math.Abs(_scrollDistance.X) <= ScrollDeaccelDist &&
             //     Math.Abs(_scrollDistance.Y) <= ScrollDeaccelDist) ||
@@ -735,8 +741,14 @@ namespace ScrollViewCocosSharp.ScrollView
             //    newY == maxInset.Y || newY == minInset.Y)
             //{
             //    Unschedule(DeaccelerateScrolling);
-            //    RelocateContainer(true);
+            //    //RelocateContainer(true);
             //}
+
+            if ((Math.Abs(_scrollDistance.X) <= ScrollDeaccelDist &&
+                 Math.Abs(_scrollDistance.Y) <= ScrollDeaccelDist))
+            {
+                Unschedule(DeaccelerateScrolling);
+            }
         }
 
         /**
