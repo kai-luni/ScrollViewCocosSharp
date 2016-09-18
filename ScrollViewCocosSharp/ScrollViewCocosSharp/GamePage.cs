@@ -88,24 +88,11 @@ namespace ScrollViewCocosSharp
 
                 _gameView.DesignResolution = new Size(viewSize.Width, viewSize.Height);
 
-                // Determine whether to use the high or low def versions of our images
-                // Make sure the default texel to content size ratio is set correctly
-                // Of course you're free to have a finer set of image resolutions e.g (ld, hd, super-hd)
-                if (designResolution.Width < viewSize.Width)
-                {
-                    contentSearchPaths.Add("Images/Hd");
-                    CCSprite.DefaultTexelToContentSizeRatio = 2.0f;
-                }
-                else
-                {
-                    contentSearchPaths.Add("Images/Ld");
-                    CCSprite.DefaultTexelToContentSizeRatio = 1.0f;
-                }
-
                 nativeGameView.ContentManager.SearchPaths = contentSearchPaths;
 
-                var scrollView = new ScrollViewImplementation(nativeGameView.ViewSize);
-                scrollView.BouncingRectSize = new CCSize(2000, 2000);
+                //create a scrollview with the correct viewsize and an area to move in the size of 3000 by 3000
+                var scrollView = new ScrollViewInAction(nativeGameView.ViewSize);
+                scrollView.BouncingRectSize = new CCSize(3000, 3000);
 
                 var scrollLayer = new CCLayerColor(CCColor4B.White);
                 scrollLayer.AddChild(scrollView);

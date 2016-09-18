@@ -26,6 +26,7 @@ namespace ScrollViewCocosSharp.ScrollView
 
     /// <summary>
     /// Scrollview implementation for CocosSharp
+    /// The code is just copied from the open source project to fix some bugs
     /// </summary>
     public class ScrollView : CCNode
     {
@@ -789,7 +790,6 @@ namespace ScrollViewCocosSharp.ScrollView
         /**
         * Expire animated scroll delegate calls
         */
-
         void StoppedAnimatedScroll(CCNode node)
         {
             Unschedule(PerformedAnimatedScroll);
